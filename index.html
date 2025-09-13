@@ -204,6 +204,28 @@
       messageDiv.textContent = '';
       messageDiv.className = '';
 
+      // Basic validation: Check if email or password is empty
+      if (!email || !password) {
+        messageDiv.textContent = "❌ Error: Email and Password cannot be empty.";
+        messageDiv.className = "error";
+        return;
+      }
+
+      // Email format validation (basic)
+      const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailPattern.test(email)) {
+        messageDiv.textContent = "❌ Error: Please enter a valid email address.";
+        messageDiv.className = "error";
+        return;
+      }
+
+      // Password strength check (minimum 6 characters)
+      if (password.length < 6) {
+        messageDiv.textContent = "❌ Error: Password must be at least 6 characters long.";
+        messageDiv.className = "error";
+        return;
+      }
+
       // Firebase Auth - Sign Up
       auth.createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
@@ -218,6 +240,9 @@
 
           messageDiv.textContent = "✅ Account created successfully!";
           messageDiv.className = "success";
+
+          // Optionally, redirect the user (you can change this as needed)
+          // window.location.href = "dashboard.html";
         })
         .catch((error) => {
           messageDiv.textContent = "❌ Error: " + error.message;
@@ -227,4 +252,3 @@
   </script>
 </body>
 </html>
-
